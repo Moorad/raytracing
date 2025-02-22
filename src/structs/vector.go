@@ -1,6 +1,9 @@
 package structs
 
-import "math"
+import (
+	"math"
+	"math/rand"
+)
 
 type Vec3 struct {
 	X, Y, Z float64
@@ -106,4 +109,32 @@ func VecCross(v1 Vec3, v2 Vec3) Vec3 {
 
 func UnitVector(v Vec3) Vec3 {
 	return VecDivScaler(v, v.Length())
+}
+
+func RandomVector(min float64, max float64) Vec3 {
+	return Vec3{
+		X: min + (max-min)*rand.Float64(),
+		Y: min + (max-min)*rand.Float64(),
+		Z: min + (max-min)*rand.Float64(),
+	}
+}
+
+func RandomUnitVector() Vec3 {
+	for {
+		p := RandomVector(-1, 1)
+		lenSq := p.LengthSqaured()
+		if 1e-160 < lenSq && lenSq <= 1 {
+			return VecDivScaler(p, math.Sqrt(lenSq))
+		}
+	}
+}
+
+func RandomOnHemisphere(normal Vec3) Vec3 {
+	unitSphere := RandomUnitVector()
+
+	if VecDot(unitSphere, normal) > 0 {
+		return unitSphere
+	}
+
+	return unitSphere.Negate()
 }

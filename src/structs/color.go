@@ -2,6 +2,7 @@ package structs
 
 import (
 	"fmt"
+	"math"
 )
 
 type Color struct {
@@ -16,6 +17,24 @@ func (c *Color) ToVec3() Vec3 {
 	}
 }
 
+func (c *Color) Print() {
+	interval := Interval{
+		Min: 0,
+		Max: 0.999,
+	}
+
+	r := linearToGamma(c.R)
+	g := linearToGamma(c.G)
+	b := linearToGamma(c.B)
+
+	scaledR := int32(interval.Clamp(r) * 255)
+	scaledG := int32(interval.Clamp(g) * 255)
+	scaledB := int32(interval.Clamp(b) * 255)
+
+	fmt.Printf("%v %v %v\n", scaledR, scaledG, scaledB)
+
+}
+
 func ToColor(v Vec3) Color {
 	return Color{
 		R: v.X,
@@ -24,16 +43,10 @@ func ToColor(v Vec3) Color {
 	}
 }
 
-func (c *Color) Print() {
-	interval := Interval{
-		Min: 0,
-		Max: 0.999,
+func linearToGamma(linearValue float64) float64 {
+	if linearValue > 0 {
+		return math.Sqrt(linearValue)
 	}
 
-	scaledR := int32(interval.Clamp(c.R) * 255)
-	scaledG := int32(interval.Clamp(c.G) * 255)
-	scaledB := int32(interval.Clamp(c.B) * 255)
-
-	fmt.Printf("%v %v %v\n", scaledR, scaledG, scaledB)
-
+	return 0
 }

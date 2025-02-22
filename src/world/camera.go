@@ -22,6 +22,7 @@ type Camera struct {
 	imageHeight      int
 	maxColorValue    int
 	samplesPerPixel  int
+	maxDepth         int
 	pixelSampleScale float64
 	center           structs.Vec3
 	pixelDeltaU      structs.Vec3
@@ -49,7 +50,7 @@ func (camera *Camera) Render(world geometry.Surface) {
 
 			for sample := 0; sample < camera.samplesPerPixel; sample++ {
 				ray := camera.getRay(i, j)
-				rayColor := camera.rayColor(&ray, world)
+				rayColor := camera.rayColor(&ray, camera.maxDepth, world)
 				pixelColor = structs.VecAdd(pixelColor, rayColor.ToVec3())
 			}
 
@@ -67,6 +68,7 @@ func (camera *Camera) initialize() {
 	camera.aspectRatio = 16.0 / 9.0
 	camera.maxColorValue = 255
 	camera.samplesPerPixel = 100
+	camera.maxDepth = 50
 
 	camera.imageHeight = int(float64(camera.imageWidth) / camera.aspectRatio)
 
@@ -149,17 +151,25 @@ func (camera *Camera) sampleSquare() structs.Vec3 {
 	return structs.Vec3{X: rand.Float64() - 0.5, Y: rand.Float64() - 0.5, Z: 0}
 }
 
-func (camera *Camera) rayColor(r *structs.Ray, world geometry.Surface) structs.Color {
+func (camera *Camera) rayColor(r *structs.Ray, depth int, world geometry.Surface) structs.Color {
+	if depth <= 0 {
+		return structs.Color{R: 0, G: 0, B: 0}
+	}
+
 	var rec geometry.HitRecord
 
-	if world.Hit(r, structs.Interval{Min: 0, Max: math.Inf(1)}, &rec) {
+	if world.Hit(r, structs.Interval{Min: 0.001, Max: math.Inf(1)}, &rec) {
+		direction := structs.VecAdd(rec.Normal, structs.RandomOnHemisphere(rec.Normal))
+
+		color := camera.rayColor(&structs.Ray{
+			Origin:    rec.Position,
+			Direction: direction,
+		}, depth-1, world)
+
 		return structs.ToColor(
 			structs.VecMultScaler(
-				structs.VecAdd(
-					rec.Normal,
-					structs.Vec3{X: 1, Y: 1, Z: 1},
-				),
-				0.5,
+				color.ToVec3(),
+				0.1,
 			),
 		)
 	}

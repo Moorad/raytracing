@@ -9,6 +9,7 @@ type HitRecord struct {
 	Normal    structs.Vec3
 	T         float64
 	FrontFace bool
+	Material  Material
 }
 
 func (rec *HitRecord) SetFrontNormal(ray *structs.Ray, outwardNormal *structs.Vec3) {
