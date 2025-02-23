@@ -7,14 +7,16 @@ import (
 )
 
 type Sphere struct {
-	center structs.Vec3
-	radius float64
+	center   structs.Vec3
+	radius   float64
+	material Material
 }
 
-func NewSphere(center structs.Vec3, radius float64) *Sphere {
+func NewSphere(center structs.Vec3, radius float64, material Material) *Sphere {
 	return &Sphere{
-		radius: math.Max(0, radius),
-		center: center,
+		radius:   math.Max(0, radius),
+		center:   center,
+		material: material,
 	}
 }
 
@@ -44,6 +46,7 @@ func (s Sphere) Hit(ray *structs.Ray, rayT structs.Interval, rec *HitRecord) boo
 	rec.Position = ray.At(rec.T)
 	outwardNormal := structs.VecDivScaler(structs.VecSub(rec.Position, s.center), s.radius)
 	rec.SetFrontNormal(ray, &outwardNormal)
+	rec.Material = s.material
 
 	return true
 }

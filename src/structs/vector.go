@@ -51,6 +51,11 @@ func (v *Vec3) LengthSqaured() float64 {
 	return v.X*v.X + v.Y*v.Y + v.Z*v.Z
 }
 
+func (v *Vec3) NearZero() bool {
+	s := 1e-8
+	return (math.Abs(v.X) < s) && (math.Abs(v.Y) < s) && math.Abs(v.Z) < s
+}
+
 func VecAdd(v1 Vec3, v2 Vec3) Vec3 {
 	return Vec3{
 		X: v1.X + v2.X,
@@ -137,4 +142,8 @@ func RandomOnHemisphere(normal Vec3) Vec3 {
 	}
 
 	return unitSphere.Negate()
+}
+
+func Reflect(v1 Vec3, v2 Vec3) Vec3 {
+	return VecSub(v1, VecMultScaler(v2, 2*VecDot(v1, v2)))
 }

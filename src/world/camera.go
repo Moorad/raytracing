@@ -159,19 +159,35 @@ func (camera *Camera) rayColor(r *structs.Ray, depth int, world geometry.Surface
 	var rec geometry.HitRecord
 
 	if world.Hit(r, structs.Interval{Min: 0.001, Max: math.Inf(1)}, &rec) {
-		direction := structs.VecAdd(rec.Normal, structs.RandomOnHemisphere(rec.Normal))
+		var scattered structs.Ray
+		var attenuation structs.Color
 
-		color := camera.rayColor(&structs.Ray{
-			Origin:    rec.Position,
-			Direction: direction,
-		}, depth-1, world)
+		if rec.Material.Scatter(r, &rec, &attenuation, &scattered) {
+			color := camera.rayColor(&scattered, depth-1, world)
+			return structs.ToColor(
+				structs.VecMult(attenuation.ToVec3(), color.ToVec3()),
+			)
+		}
 
-		return structs.ToColor(
-			structs.VecMultScaler(
-				color.ToVec3(),
-				0.1,
-			),
-		)
+		return structs.Color{
+			R: 0,
+			G: 0,
+			B: 0,
+		}
+
+		// direction := structs.VecAdd(rec.Normal, structs.RandomOnHemisphere(rec.Normal))
+
+		// color := camera.rayColor(&structs.Ray{
+		// 	Origin:    rec.Position,
+		// 	Direction: direction,
+		// }, depth-1, world)
+
+		// return structs.ToColor(
+		// 	structs.VecMultScaler(
+		// 		color.ToVec3(),
+		// 		0.1,
+		// 	),
+		// )
 	}
 
 	unitDirection := structs.UnitVector(r.Direction)
